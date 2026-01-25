@@ -420,4 +420,3 @@ MIT License - Built for social impact
 
 ---
 
-**Built with ❤️ for rural women empowerment**
