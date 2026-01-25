@@ -35,19 +35,25 @@
 
 ## ✨ Features & Screenshots
 
-> 📸 **Live Demo:** Visit [https://sakhi-hub.vercel.app](https://sakhi-hub.vercel.app) to see the application in action!
+> 🌐 **Live Demo:** Visit [https://sakhi-hub.vercel.app](https://sakhi-hub.vercel.app) to see the application in action!
 
 ### 🏠 Home Dashboard
 Beautiful, intuitive interface with quick access to all services.
 
+![Home Dashboard](screenshots/home.png)
+
 **Key Features:**
-- Six main service categories
+- Six main service categories (Skill Hub, Health, Safety, Learning, Schemes, Community)
 - Quick statistics (120+ videos, 5.0k+ Sakhis)
 - Multilingual support (English/Hindi)
 - Responsive design for all devices
 
+---
+
 ### 🎨 Skill Hub - Creator Marketplace
 Connect with talented rural artisans and browse handmade products.
+
+![Skill Hub](screenshots/skill-hub.png)
 
 **Features:**
 - 👥 Creator profiles with skills & experience
@@ -56,8 +62,12 @@ Connect with talented rural artisans and browse handmade products.
 - 🎯 Category-based filtering (Pottery, Tailoring, Art, Handicrafts)
 - 💰 Product pricing in INR
 
+---
+
 ### 🏥 AI Health Assistants
 Privacy-focused AI chatbots for maternal and menstrual health guidance.
+
+![Health Assistant](screenshots/health-assistant.png)
 
 **Available Bots:**
 - 📅 **Period Care Bot** - Cycle tracking, predictions & hygiene tips
@@ -69,8 +79,12 @@ Privacy-focused AI chatbots for maternal and menstrual health guidance.
 - Anonymous chat sessions
 - No data stored without consent
 
+---
+
 ### 📚 Learning Hub
 Skill development through vernacular video tutorials.
+
+![Learning Hub](screenshots/learning-hub.png)
 
 **Course Categories:**
 - 💳 Digital Banking & UPI (5 lessons, 45 mins)
@@ -80,24 +94,57 @@ Skill development through vernacular video tutorials.
 - 📖 Hindi Poetry Recitation (4 lessons, 35 mins)
 - 🔒 Safe Internet for Girls (3 lessons, 30 mins)
 
+---
+
 ### 🏛️ Government Schemes
 AI-powered eligibility checker for welfare programs.
+
+![Government Schemes](screenshots/schemes.png)
 
 **Available Schemes:**
 - Sukanya Samriddhi Yojana (Girl child prosperity)
 - Pradhan Mantri Matru Vandana (Maternal health support)
+- Mahila Co-operative Support (Women-led SHGs)
+- PM Ujjwala Yojana (Free LPG connections)
 - One-click eligibility check
 - Detailed benefit information
 
+---
+
 ### 🆘 Safety Network
 One-touch SOS with instant alerts to safety circle.
+
+![Safety SOS](screenshots/safety.png)
 
 **Safety Features:**
 - 🚨 3-second press SOS button
 - 📞 Quick access helplines (Police: 112, Women: 1091)
 - 👥 Safety circle with 5 contacts
-- 📍 Safe spaces locator
+- 📍 Safe spaces locator (Nearby shelters)
 - 🔒 Zero-knowledge privacy enabled
+
+---
+
+### 👤 User Profile & Orders
+
+![User Profile](screenshots/profile.png)
+
+**Features:**
+- Order tracking and history
+- Payment management
+- Direct chat with artisans
+- Artisan store registration
+
+---
+
+### 🔐 Secure Authentication
+
+![Login Page](screenshots/login.png)
+
+**Security Features:**
+- Phone number authentication
+- Secure password protection
+- "Secure & Private" guarantee
 
 ---
 
