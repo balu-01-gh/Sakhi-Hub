@@ -67,7 +67,7 @@ Connect with talented rural artisans and browse handmade products.
 ### 🏥 AI Health Assistants
 Privacy-focused AI chatbots for maternal and menstrual health guidance.
 
-![Health Assistant](screenshots/health-assistant.png)
+![Health Assistant](screenshots/health&farming-assistant.png)
 
 **Available Bots:**
 - 📅 **Period Care Bot** - Cycle tracking, predictions & hygiene tips
@@ -99,7 +99,7 @@ Skill development through vernacular video tutorials.
 ### 🏛️ Government Schemes
 AI-powered eligibility checker for welfare programs.
 
-![Government Schemes](screenshots/schemes.png)
+![Government Schemes](screenshots/govt-scheme.png)
 
 **Available Schemes:**
 - Sukanya Samriddhi Yojana (Girl child prosperity)
@@ -114,7 +114,7 @@ AI-powered eligibility checker for welfare programs.
 ### 🆘 Safety Network
 One-touch SOS with instant alerts to safety circle.
 
-![Safety SOS](screenshots/safety.png)
+![Safety SOS](screenshots/sos&emergency.png)
 
 **Safety Features:**
 - 🚨 3-second press SOS button
@@ -139,7 +139,7 @@ One-touch SOS with instant alerts to safety circle.
 
 ### 🔐 Secure Authentication
 
-![Login Page](screenshots/login.png)
+![Login Page](screenshots/sign-up.png)
 
 **Security Features:**
 - Phone number authentication
