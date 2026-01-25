@@ -341,23 +341,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 👥 Team & Contact
-
-**Project Maintainer:** [@balu-01-gh](https://github.com/balu-01-gh)
-
-### 📧 Support
-- 📮 Email: impact@sakhihub.org
-- 📞 Helpline: +91 1800-SAKHI
-
-### 🌐 Links
-- 🌍 Website: [Coming Soon]
-- 📖 Documentation: [ARCHITECTURE.md](ARCHITECTURE.md)
-- 📋 Features: [FEATURES.md](FEATURES.md)
-- 📚 Tutorial: [TUTORIAL.md](TUTORIAL.md)
-
----
-
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Google AI Studio for Gemini API
 - MongoDB for database support
