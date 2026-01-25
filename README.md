@@ -35,58 +35,69 @@
 
 ## ✨ Features & Screenshots
 
+> 📸 **Live Demo:** Visit [https://sakhi-hub.vercel.app](https://sakhi-hub.vercel.app) to see the application in action!
+
 ### 🏠 Home Dashboard
 Beautiful, intuitive interface with quick access to all services.
 
-![Home Page](https://via.placeholder.com/800x450/e91e63/ffffff?text=Home+Dashboard)
+**Key Features:**
+- Six main service categories
+- Quick statistics (120+ videos, 5.0k+ Sakhis)
+- Multilingual support (English/Hindi)
+- Responsive design for all devices
 
 ### 🎨 Skill Hub - Creator Marketplace
 Connect with talented rural artisans and browse handmade products.
-
-![Skill Hub](https://via.placeholder.com/800x450/9c27b0/ffffff?text=Skill+Hub)
 
 **Features:**
 - 👥 Creator profiles with skills & experience
 - 🛍️ Direct-from-village marketplace  
 - 💬 Instant contact & chat options
-- 🎯 Category-based filtering
+- 🎯 Category-based filtering (Pottery, Tailoring, Art, Handicrafts)
+- 💰 Product pricing in INR
 
 ### 🏥 AI Health Assistants
 Privacy-focused AI chatbots for maternal and menstrual health guidance.
 
-![Health Assistant](https://via.placeholder.com/800x450/e91e63/ffffff?text=Health+Assistants)
-
 **Available Bots:**
-- 📅 **Period Care Bot** - Cycle tracking & hygiene tips
-- 🤰 **Pregnancy Care Bot** - Trimester-wise guidance
+- 📅 **Period Care Bot** - Cycle tracking, predictions & hygiene tips
+- 🤰 **Pregnancy Care Bot** - Trimester-wise guidance & nutrition advice
 - 🌾 **Krishi Sakhi** - Agricultural advice for women farmers
+
+**Privacy Features:**
+- Zero-knowledge conversations
+- Anonymous chat sessions
+- No data stored without consent
 
 ### 📚 Learning Hub
 Skill development through vernacular video tutorials.
 
-![Learning Hub](https://via.placeholder.com/800x450/4caf50/ffffff?text=Learning+Hub)
-
 **Course Categories:**
-- 💳 Digital Banking & UPI
-- 🧵 Tailoring & Stitching
-- ✍️ Poetry & Creative Writing
-- 🔒 Internet Safety for Women
+- 💳 Digital Banking & UPI (5 lessons, 45 mins)
+- 🧵 Advanced Tailoring (12 lessons, 120 mins)
+- 🧵 Basic Tailoring Skills (8 lessons, 60 mins)
+- ✍️ Poetry & Creative Writing (6 lessons, 40 mins)
+- 📖 Hindi Poetry Recitation (4 lessons, 35 mins)
+- 🔒 Safe Internet for Girls (3 lessons, 30 mins)
 
 ### 🏛️ Government Schemes
 AI-powered eligibility checker for welfare programs.
 
-![Government Schemes](https://via.placeholder.com/800x450/2196f3/ffffff?text=Government+Schemes)
+**Available Schemes:**
+- Sukanya Samriddhi Yojana (Girl child prosperity)
+- Pradhan Mantri Matru Vandana (Maternal health support)
+- One-click eligibility check
+- Detailed benefit information
 
 ### 🆘 Safety Network
 One-touch SOS with instant alerts to safety circle.
 
-![Safety SOS](https://via.placeholder.com/800x450/f44336/ffffff?text=Safety+SOS)
-
 **Safety Features:**
-- 🚨 Emergency SOS button
-- 📞 Quick access to helplines (Police: 112, Women: 1091)
-- 👥 Safety circle notifications
+- 🚨 3-second press SOS button
+- 📞 Quick access helplines (Police: 112, Women: 1091)
+- 👥 Safety circle with 5 contacts
 - 📍 Safe spaces locator
+- 🔒 Zero-knowledge privacy enabled
 
 ---
 
