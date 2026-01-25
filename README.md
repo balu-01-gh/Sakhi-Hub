@@ -13,7 +13,7 @@
 **Inclusive Smart Villages Initiative**  
 *Economics • Healthcare • Safety • Education • Governance*
 
-[Live Demo](#) • [Documentation](#) • [Report Issue](https://github.com/balu-01-gh/Sakhi-Hub/issues)
+[Live Demo](https://sakhi-hub.vercel.app) • [Documentation](ARCHITECTURE.md) • [Report Issue](https://github.com/balu-01-gh/Sakhi-Hub/issues)
 
 </div>
 
