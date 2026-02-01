@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { ShieldAlert, Phone, MapPin, Users, Bell, ShieldCheck, HeartPulse } from 'lucide-react';
+import SafetyCircleModal from '../components/SafetyCircleModal';
+import { sendSOSAlert, getSafetyCircle } from '../utils/sosAlert';
 
 const Safety = () => {
     const { t } = useLanguage();
     const [sosActive, setSosActive] = useState(false);
+    const [showCircleModal, setShowCircleModal] = useState(false);
+    const [sosMessage, setSosMessage] = useState('');
+    const safetyCircle = getSafetyCircle();
 
     const emergencyContacts = [
         { name: "Police Helpline", phone: "112", icon: <ShieldAlert className="text-red-500" /> },
@@ -13,13 +18,26 @@ const Safety = () => {
         { name: "ASHA Worker (Sita)", phone: "+91 98765 00002", icon: <HeartPulse className="text-primary" /> },
     ];
 
-    const handleSOS = () => {
+    const handleSOS = async () => {
         setSosActive(true);
-        // In a real app, this would send location to trusted contacts and local authorities
+        setSosMessage('Sending SOS alert...');
+        
+        try {
+            const result = await sendSOSAlert();
+            
+            if (result.success) {
+                setSosMessage(`✓ ${result.message}\nYour location has been shared with your safety circle and authorities.`);
+            } else {
+                setSosMessage(result.message);
+            }
+        } catch (error) {
+            setSosMessage('Failed to send SOS. Please call emergency contacts directly.');
+        }
+        
         setTimeout(() => {
-            alert("SOS ALERT SENT! Your location has been shared with your Safety Circle and the nearest police station.");
             setSosActive(false);
-        }, 3000);
+            setSosMessage('');
+        }, 5000);
     };
 
     return (
@@ -34,11 +52,12 @@ const Safety = () => {
 
                         <h2 className="text-4xl font-black text-gray-900 mb-4 relative z-10">{t.sos}</h2>
                         <p className="text-gray-500 font-medium mb-10 relative z-10">
-                            Press and hold the button below for 3 seconds to send an emergency alert to your village circle and authorities.
+                            Press the button below to send an emergency alert to your {safetyCircle.length} trusted contact{safetyCircle.length !== 1 ? 's' : ''} and authorities.
                         </p>
 
                         <button
-                            onMouseDown={handleSOS}
+                            onClick={handleSOS}
+                            disabled={sosActive}
                             className={`w-64 h-64 rounded-full mx-auto flex flex-col items-center justify-center gap-2 transform transition-all active:scale-90 shadow-2xl relative z-10 ${sosActive ? 'bg-red-700' : 'bg-red-600 hover:bg-red-700'}`}
                         >
                             <Bell size={64} className="text-white animate-bounce" />
@@ -46,6 +65,12 @@ const Safety = () => {
                                 {sosActive ? 'SENDING...' : t.sos}
                             </span>
                         </button>
+
+                        {sosMessage && (
+                            <div className={`mt-6 p-4 rounded-2xl relative z-10 ${sosActive ? 'bg-yellow-100 text-yellow-900' : 'bg-green-100 text-green-900'}`}>
+                                <p className="text-sm font-bold whitespace-pre-line">{sosMessage}</p>
+                            </div>
+                        )}
 
                         <div className="mt-10 flex items-center justify-center gap-2 text-red-600 font-bold relative z-10">
                             <ShieldCheck size={20} /> Zero-Knowledge Privacy Enabled
@@ -104,16 +129,32 @@ const Safety = () => {
                         </div>
                         <h3 className="text-3xl font-black mb-4 relative z-10">My Safety Circle</h3>
                         <p className="text-white/80 font-medium mb-8 relative z-10">
-                            These 5 sakhis will be instantly notified if you trigger an SOS.
+                            {safetyCircle.length === 0 
+                                ? 'Add trusted contacts who will be notified in emergencies.'
+                                : `${safetyCircle.length} trusted contact${safetyCircle.length !== 1 ? 's' : ''} will be instantly notified if you trigger an SOS.`
+                            }
                         </p>
-                        <div className="flex -space-x-4 relative z-10 mb-8">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="w-14 h-14 rounded-full border-4 border-secondary bg-white overflow-hidden flex items-center justify-center text-secondary">
-                                    <Users size={24} />
-                                </div>
-                            ))}
-                        </div>
-                        <button className="bg-white text-secondary px-8 py-3 rounded-2xl font-black hover:bg-gray-100 transition-all relative z-10 shadow-xl">
+                        {safetyCircle.length > 0 && (
+                            <div className="flex -space-x-4 relative z-10 mb-8">
+                                {safetyCircle.slice(0, 5).map((contact, i) => (
+                                    <div key={i} className="w-14 h-14 rounded-full border-4 border-secondary bg-white overflow-hidden flex items-center justify-center text-secondary relative group">
+                                        <Users size={24} />
+                                        <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                            {contact.name}
+                                        </div>
+                                    </div>
+                                ))}
+                                {safetyCircle.length > 5 && (
+                                    <div className="w-14 h-14 rounded-full border-4 border-secondary bg-white flex items-center justify-center text-secondary font-black text-sm">
+                                        +{safetyCircle.length - 5}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <button 
+                            onClick={() => setShowCircleModal(true)}
+                            className="bg-white text-secondary px-8 py-3 rounded-2xl font-black hover:bg-gray-100 transition-all relative z-10 shadow-xl"
+                        >
                             Manage Circle
                         </button>
                     </div>
@@ -121,6 +162,11 @@ const Safety = () => {
 
             </div>
 
+            {/* Safety Circle Modal */}
+            <SafetyCircleModal 
+                isOpen={showCircleModal} 
+                onClose={() => setShowCircleModal(false)} 
+            />
         </div>
     );
 };

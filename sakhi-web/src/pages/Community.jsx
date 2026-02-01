@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Users, MessageSquare, Vote, Bell, ArrowRight, User } from 'lucide-react';
+import { Users, MessageSquare, Vote, Bell, ArrowRight, User, ShieldAlert } from 'lucide-react';
+import SafetyCircleModal from '../components/SafetyCircleModal';
+import { sendSOSAlert, getSafetyCircle } from '../utils/sosAlert';
 
 const Community = () => {
     const { t } = useLanguage();
+    const [showCircleModal, setShowCircleModal] = useState(false);
+    const [sosActive, setSosActive] = useState(false);
+    const [sosMessage, setSosMessage] = useState('');
+    const safetyCircle = getSafetyCircle();
+    
     const [polls, setPolls] = useState(() => {
         const saved = localStorage.getItem('village_polls');
         return saved ? JSON.parse(saved) : [
@@ -21,6 +28,28 @@ const Community = () => {
         });
         setPolls(updated);
         localStorage.setItem('village_polls', JSON.stringify(updated));
+    };
+
+    const handleCommunitySOS = async () => {
+        setSosActive(true);
+        setSosMessage('Broadcasting emergency to community...');
+        
+        try {
+            const result = await sendSOSAlert();
+            
+            if (result.success) {
+                setSosMessage(`✓ Emergency alert sent to ${result.results.filter(r => r.status === 'sent').length} contacts in your safety circle!`);
+            } else {
+                setSosMessage(result.message);
+            }
+        } catch (error) {
+            setSosMessage('Failed to send alert. Please use Safety page SOS button.');
+        }
+        
+        setTimeout(() => {
+            setSosActive(false);
+            setSosMessage('');
+        }, 5000);
     };
 
     return (
@@ -95,6 +124,42 @@ const Community = () => {
 
                 {/* Sidebar: Announcements */}
                 <div className="space-y-8">
+                    {/* Emergency SOS Button */}
+                    <div className={`bg-gradient-to-br from-red-600 to-red-700 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden ${sosActive ? 'animate-pulse' : ''}`}>
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <ShieldAlert size={120} />
+                        </div>
+                        <h3 className="text-2xl font-black mb-3 relative z-10 flex items-center gap-2">
+                            <ShieldAlert size={28} />
+                            Community SOS
+                        </h3>
+                        <p className="text-white/90 text-sm font-medium mb-6 relative z-10">
+                            {safetyCircle.length === 0 
+                                ? 'Set up your safety circle to use emergency alerts'
+                                : 'Instantly alert your trusted contacts in emergencies'
+                            }
+                        </p>
+                        <button
+                            onClick={handleCommunitySOS}
+                            disabled={sosActive || safetyCircle.length === 0}
+                            className="w-full bg-white text-red-600 py-4 rounded-2xl font-black hover:bg-gray-100 transition-all relative z-10 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            <Bell size={20} />
+                            {sosActive ? 'SENDING...' : 'SEND SOS ALERT'}
+                        </button>
+                        {sosMessage && (
+                            <div className="mt-4 bg-white/20 backdrop-blur-sm p-3 rounded-xl text-sm relative z-10">
+                                {sosMessage}
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setShowCircleModal(true)}
+                            className="w-full mt-3 bg-white/10 hover:bg-white/20 text-white py-3 rounded-2xl font-bold transition-all relative z-10 text-sm"
+                        >
+                            {safetyCircle.length === 0 ? 'Setup Safety Circle' : `Manage Circle (${safetyCircle.length})`}
+                        </button>
+                    </div>
+
                     <div className="bg-white p-10 rounded-[4rem] shadow-xl border border-gray-100">
                         <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
                             <Bell className="text-yellow-600" /> Notifications
@@ -139,6 +204,11 @@ const Community = () => {
 
             </div>
 
+            {/* Safety Circle Modal */}
+            <SafetyCircleModal 
+                isOpen={showCircleModal} 
+                onClose={() => setShowCircleModal(false)} 
+            />
         </div>
     );
 };

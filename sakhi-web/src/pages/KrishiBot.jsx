@@ -24,16 +24,16 @@ const KrishiBotPage = () => {
     // Add welcome message with correct format
     const welcomeMsg = {
       role: 'assistant',
-      content: `🌾 Namaste! I'm Krishi Sakhi, your agricultural companion. I can help you with:
+      content: `Namaste! I'm Krishi Sakhi, your agricultural companion. I can help you with:
 
-🌱 **Crop Selection & Planning**
-💧 **Water & Irrigation Management**  
-🌿 **Organic Farming & Pest Control**
-🌾 **Seasonal Guidance**
-💰 **Government Schemes for Farmers**
-📈 **Market Information**
+**Crop Selection & Planning**
+**Water & Irrigation Management**  
+**Organic Farming & Pest Control**
+**Seasonal Guidance**
+**Government Schemes for Farmers**
+**Market Information**
 
-Tell me what you'd like to know about farming! I'm here to help. 🌻`
+Tell me what you'd like to know about farming! I'm here to help.`
     };
     
     setMessages([welcomeMsg]);
@@ -69,7 +69,7 @@ Tell me what you'd like to know about farming! I'm here to help. 🌻`
       // Add error message with correct format
       const errorMessage = {
         role: 'assistant',
-        content: "🙏 I'm having a small technical hiccup right now. Please try again in a moment, or visit your nearest Krishi Vigyan Kendra for immediate help!"
+        content: "I'm having a small technical hiccup right now. Please try again in a moment, or visit your nearest Krishi Vigyan Kendra for immediate help!"
       };
       
       setMessages(prev => [...prev, errorMessage]);

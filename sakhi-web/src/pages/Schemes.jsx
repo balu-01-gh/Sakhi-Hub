@@ -14,12 +14,24 @@ const EligibilityModal = ({ isOpen, onClose, schemeName }) => {
         const ageNum = parseInt(age);
         const incomeNum = parseInt(income);
 
+        // Updated eligibility logic for 2026 schemes
         if (schemeName.includes('Sukanya')) {
             if (ageNum <= 10) setResult('eligible');
             else setResult('not_eligible');
-        } else if (schemeName.includes('Matru')) {
+        } else if (schemeName.includes('Matru') || schemeName.includes('PMMVY')) {
+            // First child, no income limit
+            setResult('eligible');
+        } else if (schemeName.includes('Ujjwala')) {
             if (incomeNum < 150000) setResult('eligible');
             else setResult('not_eligible');
+        } else if (schemeName.includes('NRLM') || schemeName.includes('Livelihood')) {
+            // Rural women in SHGs
+            setResult('eligible');
+        } else if (schemeName.includes('Stand Up') || schemeName.includes('Mudra')) {
+            if (ageNum >= 18) setResult('eligible');
+            else setResult('not_eligible');
+        } else if (schemeName.includes('Beti Bachao') || schemeName.includes('Mahila Shakti')) {
+            setResult('eligible');
         } else {
             setResult('eligible');
         }
@@ -87,32 +99,68 @@ const Schemes = () => {
 
     const govtSchemes = [
         {
-            title: "Sukanya Samriddhi Yojana",
-            desc: "A small deposit scheme for girl child prosperity with high interest rates.",
-            benefit: "Up to 8.2% interest & Tax savings",
+            title: "Sukanya Samriddhi Yojana (SSY)",
+            desc: "Small deposit scheme for girl child prosperity. Parents/guardians can open account for girls below 10 years.",
+            benefit: "8.2% Interest & Tax Benefits u/s 80C",
             color: "border-pink-500",
-            link: "https://www.india.gov.in/"
+            link: "https://www.indiapost.gov.in/VAS/Pages/IndiaPostHome.aspx",
+            eligibility: "Girl child below 10 years, Indian resident"
         },
         {
-            title: "Pradhan Mantri Matru Vandana",
-            desc: "Financial assistance for pregnant women and lactating mothers for health/nutrition.",
-            benefit: "₹5000 Cash Incentive",
+            title: "PM Matru Vandana Yojana (PMMVY)",
+            desc: "Cash incentive for pregnant & lactating mothers for first living child. Promotes health & nutrition.",
+            benefit: "₹5000 in 3 installments",
             color: "border-secondary",
-            link: "https://www.india.gov.in/"
+            link: "https://pmmvy.wcd.gov.in/",
+            eligibility: "Pregnant women & lactating mothers (1st child)"
         },
         {
-            title: "Mahila Co-operative Support",
-            desc: "Low-interest loans for women-led SHGs and cottage industries.",
-            benefit: "Loans at 4% Interest",
+            title: "National Rural Livelihood Mission (NRLM)",
+            desc: "DAY-NRLM supports women SHGs with interest subsidy, skill training and market linkages.",
+            benefit: "Loans up to ₹10 lakh at 7% interest",
             color: "border-blue-500",
-            link: "https://www.india.gov.in/"
+            link: "https://nrlm.gov.in/",
+            eligibility: "Women in SHGs, rural households"
         },
         {
-            title: "PM Ujjwala Yojana",
-            desc: "Free LPG connections for women in BPL households to ensure clean cooking.",
-            benefit: "Free Gas Connection & Refill",
+            title: "PM Ujjwala Yojana 2.0",
+            desc: "Free LPG connection with first refill to BPL families. Promotes clean cooking fuel.",
+            benefit: "Free connection + ₹1600 support",
             color: "border-orange-500",
-            link: "https://www.india.gov.in/"
+            link: "https://www.pmuy.gov.in/index.aspx",
+            eligibility: "BPL households, priority to women"
+        },
+        {
+            title: "Stand Up India Scheme",
+            desc: "Bank loans for women & SC/ST entrepreneurs to set up greenfield enterprises in manufacturing/services.",
+            benefit: "₹10 lakh to ₹1 crore loans",
+            color: "border-green-500",
+            link: "https://www.standupmitra.in/Home/StandupIndia",
+            eligibility: "Women entrepreneurs (18+ years)"
+        },
+        {
+            title: "Beti Bachao Beti Padhao",
+            desc: "Improving child sex ratio and ensuring education for girl children through awareness and services.",
+            benefit: "Scholarships & Awareness Programs",
+            color: "border-purple-500",
+            link: "https://wcd.nic.in/schemes/beti-bachao-beti-padhao-scheme",
+            eligibility: "Girl children across India"
+        },
+        {
+            title: "Mahila Shakti Kendra (MSK)",
+            desc: "Community participation for rural women empowerment through skill development and employment.",
+            benefit: "Free skill training & Employment",
+            color: "border-yellow-500",
+            link: "https://wcd.nic.in/schemes/mahila-shakti-kendras-msk",
+            eligibility: "Rural women aged 18-65 years"
+        },
+        {
+            title: "PM Mudra Yojana",
+            desc: "Loans for micro/small enterprises. Shishu (up to ₹50k), Kishore (₹50k-₹5L), Tarun (₹5L-₹10L).",
+            benefit: "Up to ₹10 lakh loans",
+            color: "border-teal-500",
+            link: "https://www.mudra.org.in/Default/Index",
+            eligibility: "Women entrepreneurs, self-employed"
         }
     ];
 
@@ -129,30 +177,44 @@ const Schemes = () => {
                 </p>
             </header>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
                 {govtSchemes.map((scheme, idx) => (
-                    <div key={idx} className={`bg-white p-10 rounded-[3rem] shadow-xl border-l-[12px] ${scheme.color} hover:shadow-2xl hover:-translate-y-1.5 transition-all group flex flex-col`}>
+                    <div key={idx} className={`bg-white p-8 rounded-[3rem] shadow-xl border-l-[12px] ${scheme.color} hover:shadow-2xl hover:-translate-y-1.5 transition-all group flex flex-col`}>
                         <div className="mb-auto">
-                            <h3 className="text-3xl font-black text-gray-900 mb-4 group-hover:text-primary transition-colors">{scheme.title}</h3>
-                            <p className="text-gray-500 font-medium text-lg leading-relaxed mb-6">
+                            <h3 className="text-2xl font-black text-gray-900 mb-3 group-hover:text-primary transition-colors leading-tight">{scheme.title}</h3>
+                            <p className="text-gray-500 font-medium text-base leading-relaxed mb-4">
                                 {scheme.desc}
+                            </p>
+                            <p className="text-xs text-gray-400 font-bold mb-4">
+                                <span className="font-black text-gray-600">Eligibility:</span> {scheme.eligibility}
                             </p>
                         </div>
 
-                        <div className="bg-gray-50 rounded-3xl p-6 flex justify-between items-center mb-8 border border-gray-100">
+                        <div className="bg-gray-50 rounded-2xl p-5 flex justify-between items-center mb-6 border border-gray-100">
                             <div>
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Key Benefit</p>
-                                <p className="text-xl font-black text-secondary">{scheme.benefit}</p>
+                                <p className="text-lg font-black text-secondary">{scheme.benefit}</p>
                             </div>
-                            <CheckCircle2 size={32} className="text-green-500" />
+                            <CheckCircle2 size={28} className="text-green-500" />
                         </div>
 
-                        <button
-                            onClick={() => setSelectedScheme(scheme.title)}
-                            className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-primary transition-all shadow-xl shadow-gray-200"
-                        >
-                            Check Eligibility <ArrowRight size={20} />
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setSelectedScheme(scheme.title)}
+                                className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary transition-all shadow-lg"
+                            >
+                                Check Eligibility
+                            </button>
+                            <a
+                                href={scheme.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-blue-500 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center"
+                                title="Official Website"
+                            >
+                                <ArrowRight size={18} />
+                            </a>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,12 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { User, Package, CreditCard, MessageCircle, ArrowRight, CheckCircle2, Clock, ShoppingBag, Plus, Trash2 } from 'lucide-react';
+import { User, Package, CreditCard, MessageCircle, ArrowRight, CheckCircle2, Clock, ShoppingBag, Plus, Trash2, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getCurrentUser, updateUser } from '../services/api';
+import { getUserData, isAuthenticated, clearAuthData, setAuthData, getAuthToken } from '../utils/auth';
 
 const Profile = () => {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('orders');
-    const userName = localStorage.getItem('user_name') || 'Lakshmi';
-    const [isCreator, setIsCreator] = useState(localStorage.getItem('is_creator') === 'true');
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [userName, setUserName] = useState('Sakhi User');
+    const [isCreator, setIsCreator] = useState(false);
+
+    useEffect(() => {
+        // Check if user is logged in
+        if (!isAuthenticated()) {
+            navigate('/login');
+            return;
+        }
+
+        // Load user data
+        const loadUserData = async () => {
+            try {
+                const storedData = getUserData();
+                if (storedData) {
+                    setUserData(storedData);
+                    setUserName(storedData.name);
+                    setIsCreator(storedData.is_creator || false);
+                }
+
+                // Fetch fresh data from API
+                const freshData = await getCurrentUser();
+                setUserData(freshData);
+                setUserName(freshData.name);
+                setIsCreator(freshData.is_creator || false);
+                
+                // Update local storage
+                const token = getAuthToken();
+                if (token) {
+                    setAuthData(token, freshData);
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+                // If token is invalid, logout
+                if (error.response?.status === 401) {
+                    clearAuthData();
+                    navigate('/login');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadUserData();
+    }, [navigate]);
+
+    const handleBecomeCreator = async () => {
+        try {
+            const updated = await updateUser({ ...userData, is_creator: true });
+            setUserData(updated);
+            setIsCreator(true);
+            const token = getAuthToken();
+            if (token) {
+                setAuthData(token, updated);
+            }
+            alert('Congratulations! You are now a creator. Start adding your products!');
+        } catch (error) {
+            console.error('Failed to update creator status:', error);
+            alert('Failed to update profile. Please try again.');
+        }
+    };
 
     const [orders] = useState(() => {
         const saved = JSON.parse(localStorage.getItem('orders') || '[]');
@@ -83,6 +148,17 @@ const Profile = () => {
 
     const savedChats = getSavedChats();
 
+    if (loading) {
+        return (
+            <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">Loading your profile...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto px-4 py-12 max-w-6xl animate-fadeIn">
             <div className="flex flex-col md:flex-row gap-12">
@@ -96,7 +172,10 @@ const Profile = () => {
                                 {isCreator && <div className="absolute -top-1 -right-1 bg-yellow-400 text-xs font-black p-1.5 rounded-full border-2 border-white text-gray-900">PRO</div>}
                             </div>
                             <h2 className="text-2xl font-black text-gray-900">{userName}</h2>
-                            <p className="text-gray-500 font-medium">98765 43210</p>
+                            <p className="text-gray-500 font-medium">{userData?.phone || '98765 43210'}</p>
+                            {userData?.email && (
+                                <p className="text-gray-400 text-sm">{userData.email}</p>
+                            )}
                         </div>
 
                         <nav className="space-y-2">
@@ -130,7 +209,7 @@ const Profile = () => {
                                 <div className="p-4 bg-gray-50 rounded-2xl mt-6 border border-dashed border-gray-200">
                                     <p className="text-xs font-bold text-gray-400 uppercase mb-2">Artisan Status</p>
                                     <button
-                                        onClick={() => { localStorage.setItem('is_creator', 'true'); setIsCreator(true); }}
+                                        onClick={handleBecomeCreator}
                                         className="w-full text-xs font-black text-secondary hover:underline text-left flex items-center gap-2"
                                     >
                                         <Plus size={14} /> Register Store

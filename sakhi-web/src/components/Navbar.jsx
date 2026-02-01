@@ -1,16 +1,74 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     Heart, ShoppingBag, Activity, Languages,
-    User, ShieldAlert, GraduationCap, Gavel
+    User, ShieldAlert, GraduationCap, Gavel, LogOut
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { isAuthenticated, clearAuthData } from '../utils/auth';
+import { logout as apiLogout } from '../services/api';
+import { initSessionTimeout, clearSessionTimers, getSessionTimeRemaining, extendSession } from '../utils/session';
+import SessionWarning from './SessionWarning';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
     const { language, setLanguage, t } = useLanguage();
+    const navigate = useNavigate();
+    const userLoggedIn = isAuthenticated();
+    const [showSessionWarning, setShowSessionWarning] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(0);
+
+    useEffect(() => {
+        if (userLoggedIn) {
+            const handleSessionWarning = () => {
+                setTimeRemaining(getSessionTimeRemaining());
+                setShowSessionWarning(true);
+            };
+
+            const handleSessionTimeout = async () => {
+                await handleLogout();
+            };
+
+            initSessionTimeout(handleSessionWarning, handleSessionTimeout);
+
+            return () => clearSessionTimers();
+        }
+    }, [userLoggedIn]);
+
+    const handleLogout = async () => {
+        try {
+            await apiLogout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            clearSessionTimers();
+            clearAuthData();
+            navigate('/login');
+        }
+    };
+
+    const handleExtendSession = () => {
+        setShowSessionWarning(false);
+        const handleSessionWarning = () => {
+            setTimeRemaining(getSessionTimeRemaining());
+            setShowSessionWarning(true);
+        };
+        const handleSessionTimeout = async () => {
+            await handleLogout();
+        };
+        extendSession(handleSessionWarning, handleSessionTimeout);
+    };
 
     return (
-        <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
+        <>
+            {showSessionWarning && (
+                <SessionWarning
+                    onExtend={handleExtendSession}
+                    onLogout={handleLogout}
+                    timeRemaining={timeRemaining}
+                />
+            )}
+            <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
             <div className="container mx-auto px-4 py-3 flex justify-between items-center">
 
                 {/* Logo */}
@@ -35,12 +93,18 @@ const Navbar = () => {
                         <Link to="/schemes" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
                             <Gavel size={18} /> {t.schemes}
                         </Link>
-                        <Link to="/profile" className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all">
-                            <User size={20} />
-                        </Link>
+                        
+                        {userLoggedIn && (
+                            <Link to="/profile" className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all">
+                                <User size={20} />
+                            </Link>
+                        )}
                     </div>
 
                     <div className="h-6 w-px bg-white/20 ml-2"></div>
+
+                    {/* Theme Toggle */}
+                    <ThemeToggle />
 
                     {/* Emergency SOS in Nav */}
                     <Link to="/safety" className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-black flex items-center gap-2 animate-pulse shadow-lg transition-all">
@@ -61,9 +125,18 @@ const Navbar = () => {
                         </select>
                     </div>
 
-                    <Link to="/login" className="bg-white text-primary px-5 py-2 rounded-full font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all">
-                        {t.login}
-                    </Link>
+                    {userLoggedIn ? (
+                        <button
+                            onClick={handleLogout}
+                            className="bg-white text-primary px-5 py-2 rounded-full font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                        >
+                            <LogOut size={16} /> Logout
+                        </button>
+                    ) : (
+                        <Link to="/login" className="bg-white text-primary px-5 py-2 rounded-full font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all">
+                            {t.login}
+                        </Link>
+                    )}
                 </div>
 
                 {/* Mobile SOS Icon (Visible only on small screens) */}
@@ -78,6 +151,7 @@ const Navbar = () => {
 
             </div>
         </nav>
+        </>
     );
 };
 
