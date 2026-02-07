@@ -46,7 +46,7 @@ const Home = () => {
                 </Link>
 
                 {/* 2. Health Assistant */}
-                <Link to="/health-assistant" className="group">
+                <Link to="/health" className="group">
                     <div className="bg-white/70 backdrop-blur-md p-8 rounded-[3rem] shadow-xl hover:shadow-2xl transition-all border-b-8 border-primary h-full flex flex-col items-center text-center relative overflow-hidden h-[400px]">
                         <div className="bg-pink-100 p-5 rounded-3xl mb-4 group-hover:scale-110 transition-transform">
                             <HeartPulse size={40} className="text-primary" />

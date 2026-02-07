@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000';
+export const API_URL = 'http://127.0.0.1:8000';
 
 export const api = axios.create({
     baseURL: API_URL,
@@ -19,17 +19,33 @@ api.interceptors.request.use(
 );
 
 export const getCreators = async () => {
-    const response = await api.get('/creators');
+    const response = await api.get('/api/skill-hub/creators');
     return response.data;
 };
 
 export const getProducts = async () => {
-    const response = await api.get('/products');
+    const response = await api.get('/api/skill-hub/products');
+    return response.data;
+};
+
+export const createProduct = async (data) => {
+    const response = await api.post('/api/skill-hub/add-product', data);
     return response.data;
 };
 
 export const createProfile = async (data) => {
-    const response = await api.post('/create-profile', data);
+    const response = await api.post('/api/skill-hub/create-profile', data);
+    return response.data;
+};
+
+export const uploadWorkSample = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/api/skill-hub/uploads/work-sample', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };
 
@@ -44,7 +60,7 @@ export const sendPregnancyChat = async (data) => {
 };
 
 export const sendKrishiChat = async (data) => {
-    const response = await api.post('/api/health-bots/krishi-bot', data);
+    const response = await api.post('/api/krishi-bot/chat', data);
     return response.data;
 };
 
@@ -73,3 +89,25 @@ export const updateUser = async (data) => {
     const response = await api.put('/api/auth/me', data);
     return response.data;
 };
+
+// Community APIs
+export const getCommunityPosts = async () => {
+    const response = await api.get('/api/community/posts');
+    return response.data;
+};
+
+export const createCommunityPost = async (data) => {
+    const response = await api.post('/api/community/posts', data);
+    return response.data;
+};
+
+export const addComment = async (postId, data) => {
+    const response = await api.post(`/api/community/posts/${postId}/comments`, data);
+    return response.data;
+};
+
+export const likeCommunityPost = async (postId) => {
+    const response = await api.post(`/api/community/posts/${postId}/like`);
+    return response.data;
+};
+

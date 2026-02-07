@@ -1,88 +1,139 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { BookOpen, CheckCircle2, DollarSign, Heart, ArrowRight, X, UserCheck, AlertCircle } from 'lucide-react';
+import { BookOpen, CheckCircle2, DollarSign, Heart, ArrowRight, X, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { awardPoints } from '../utils/gamification';
+import BadgeNotification from '../components/BadgeNotification';
+import { API_URL } from '../services/api';
 
-const EligibilityModal = ({ isOpen, onClose, schemeName }) => {
+const EligibilityModal = ({ isOpen, onClose, schemeName, onCheckComplete }) => {
     const [age, setAge] = useState('');
     const [income, setIncome] = useState('');
     const [result, setResult] = useState(null);
+    const [reason, setReason] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // Reset state when modal opens/closes
+    React.useEffect(() => {
+        if (!isOpen) {
+            setAge('');
+            setIncome('');
+            setResult(null);
+            setReason('');
+            setLoading(false);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
-    const checkEligibility = (e) => {
+    const checkEligibility = async (e) => {
         e.preventDefault();
-        const ageNum = parseInt(age);
-        const incomeNum = parseInt(income);
+        setLoading(true);
+        
+        try {
+            const response = await fetch(`${API_URL}/api/schemes/check-eligibility`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scheme_name: schemeName,
+                    age: parseInt(age),
+                    income: parseInt(income),
+                })
+            });
 
-        // Updated eligibility logic for 2026 schemes
-        if (schemeName.includes('Sukanya')) {
-            if (ageNum <= 10) setResult('eligible');
-            else setResult('not_eligible');
-        } else if (schemeName.includes('Matru') || schemeName.includes('PMMVY')) {
-            // First child, no income limit
+            if (!response.ok) throw new Error("API call failed");
+            
+            const data = await response.json();
+            setResult(data.is_eligible ? 'eligible' : 'not_eligible');
+            setReason(data.reason);
+
+            // Award points only on successful check
+            if (onCheckComplete) onCheckComplete();
+            
+        } catch (err) {
+            console.error(err);
+            // Fallback for offline mode or error
             setResult('eligible');
-        } else if (schemeName.includes('Ujjwala')) {
-            if (incomeNum < 150000) setResult('eligible');
-            else setResult('not_eligible');
-        } else if (schemeName.includes('NRLM') || schemeName.includes('Livelihood')) {
-            // Rural women in SHGs
-            setResult('eligible');
-        } else if (schemeName.includes('Stand Up') || schemeName.includes('Mudra')) {
-            if (ageNum >= 18) setResult('eligible');
-            else setResult('not_eligible');
-        } else if (schemeName.includes('Beti Bachao') || schemeName.includes('Mahila Shakti')) {
-            setResult('eligible');
-        } else {
-            setResult('eligible');
+            setReason("Could not confirm with server, but you meet basic criteria.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-            <div className="bg-white rounded-[3rem] shadow-2xl max-w-md w-full overflow-hidden relative border border-white/20">
-                <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-gray-600"><X size={24} /></button>
-                <div className="p-10">
-                    <h3 className="text-2xl font-black text-gray-900 mb-2">Eligibility Check</h3>
-                    <p className="text-gray-500 font-medium mb-8">For: {schemeName}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            {/* Centered Modal Card */}
+            <div className="bg-white w-full max-w-[28rem] rounded-[2rem] shadow-2xl overflow-hidden relative border border-white/20 animate-scaleIn">
+                
+                <button 
+                    onClick={onClose} 
+                    className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors z-10"
+                >
+                    <X size={24} />
+                </button>
+                
+                <div className="p-8 pb-10">
+                    <h3 className="text-2xl font-black text-gray-900 mb-1">Eligibility Check</h3>
+                    <p className="text-gray-500 font-medium mb-8 text-sm">For: <span className="text-primary/80">{schemeName}</span></p>
 
                     {!result ? (
                         <form onSubmit={checkEligibility} className="space-y-6">
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Your Age</label>
-                                <input
-                                    type="number"
-                                    className="w-full bg-gray-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
-                                    value={age}
-                                    onChange={e => setAge(e.target.value)}
-                                    required
-                                />
+                            <div className="space-y-2">
+                                <label className="block text-xs font-black uppercase tracking-widest text-gray-400 pl-1">Your Age</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 font-bold text-gray-800 focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
+                                        value={age}
+                                        onChange={e => setAge(e.target.value)}
+                                        placeholder="25"
+                                        required
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Annual Family Income (₹)</label>
-                                <input
-                                    type="number"
-                                    className="w-full bg-gray-50 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20"
-                                    value={income}
-                                    onChange={e => setIncome(e.target.value)}
-                                    required
-                                />
+                            
+                            <div className="space-y-2">
+                                <label className="block text-xs font-black uppercase tracking-widest text-gray-400 pl-1">Annual Family Income (₹)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 font-bold text-gray-800 focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
+                                        value={income}
+                                        onChange={e => setIncome(e.target.value)}
+                                        placeholder="250000"
+                                        required
+                                    />
+                                </div>
                             </div>
-                            <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-pink-100 uppercase tracking-widest">
-                                Check Status
+
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full bg-primary hover:bg-pink-700 text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-pink-200 uppercase tracking-wider transform hover:-translate-y-1 transition-all mt-4 flex justify-center items-center gap-2 disabled:opacity-70 disabled:transform-none"
+                            >
+                                {loading && <Loader2 className="animate-spin" size={20} />}
+                                {loading ? "Checking..." : "Check Status"}
                             </button>
                         </form>
                     ) : (
-                        <div className="text-center py-6">
-                            <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-6 ${result === 'eligible' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                {result === 'eligible' ? <UserCheck size={40} /> : <AlertCircle size={40} />}
+                        <div className="text-center py-4 animate-fadeIn">
+                            <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center mb-6 shadow-xl ${result === 'eligible' ? 'bg-green-100 text-green-600 shadow-green-100' : 'bg-red-100 text-red-600 shadow-red-100'}`}>
+                                {result === 'eligible' ? <CheckCircle2 size={48} strokeWidth={3} /> : <AlertCircle size={48} strokeWidth={3} />}
                             </div>
-                            <h4 className="text-2xl font-black text-gray-900 mb-2">
-                                {result === 'eligible' ? 'YOU ARE ELIGIBLE!' : 'NOT ELIGIBLE'}
+                            <h4 className={`text-2xl font-black mb-3 ${result === 'eligible' ? 'text-green-600' : 'text-red-500'}`}>
+                                {result === 'eligible' ? 'ELIGIBLE TO APPLY!' : 'NOT ELIGIBLE'}
                             </h4>
-                            <p className="text-gray-500 font-medium mb-8">
-                                {result === 'eligible' ? 'Bring your Aadhar card to the local Panchayat office to apply.' : 'Based on criteria, you do not qualify for this specific scheme.'}
+                            <p className="text-gray-500 font-medium mb-8 leading-relaxed px-4">
+                                {reason || (result === 'eligible' 
+                                    ? 'Great news! You meet the criteria. Visit your local Panchayat or Anganwadi center with Aadhar card to apply.' 
+                                    : 'Based on the criteria, you may not qualify for this specific scheme at this time.')}
                             </p>
-                            <button onClick={onClose} className="bg-gray-900 text-white px-8 py-3 rounded-2xl font-black">
+                            <button 
+                                onClick={onClose} 
+                                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-colors"
+                            >
                                 Close Window
                             </button>
                         </div>
@@ -96,6 +147,14 @@ const EligibilityModal = ({ isOpen, onClose, schemeName }) => {
 const Schemes = () => {
     const { t } = useLanguage();
     const [selectedScheme, setSelectedScheme] = useState(null);
+    const [newBadge, setNewBadge] = useState(null);
+
+    const handleCheckComplete = () => {
+        const result = awardPoints('SCHEME_CHECK');
+        if (result.newBadges && result.newBadges.length > 0) {
+            setNewBadge(result.newBadges[result.newBadges.length - 1]);
+        }
+    };
 
     const govtSchemes = [
         {

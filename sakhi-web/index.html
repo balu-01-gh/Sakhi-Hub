@@ -2,6 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        var errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(255,0,0,0.9);color:white;padding:20px;z-index:99999;font-family:monospace;white-space:pre-wrap;';
+        errorDiv.textContent = 'Global Error:\n' + message + '\nAt: ' + source + ':' + lineno + '\n' + (error ? error.stack : '');
+        document.body.appendChild(errorDiv);
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+        var errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position:fixed;top:50%;left:0;width:100%;background:rgba(255,165,0,0.9);color:white;padding:20px;z-index:99999;font-family:monospace;white-space:pre-wrap;';
+        errorDiv.textContent = 'Unhandled Promise Rejection:\n' + event.reason;
+        document.body.appendChild(errorDiv);
+      });
+    </script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

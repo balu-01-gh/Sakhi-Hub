@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Video, BookOpen, GraduationCap, PlayCircle, Star, Users, X } from 'lucide-react';
+import { awardPoints } from '../utils/gamification';
+import BadgeNotification from '../components/BadgeNotification';
 
 const VideoModal = ({ isOpen, onClose, title, videoId }) => {
     if (!isOpen) return null;
@@ -30,6 +32,16 @@ const VideoModal = ({ isOpen, onClose, title, videoId }) => {
 const Education = () => {
     const { t } = useLanguage();
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [newBadge, setNewBadge] = useState(null);
+
+    const handleVideoOpen = (video) => {
+        setSelectedVideo(video);
+        // Award points for watching video
+        const result = awardPoints('VIDEO_WATCH');
+        if (result.newBadges && result.newBadges.length > 0) {
+            setNewBadge(result.newBadges[result.newBadges.length - 1]);
+        }
+    };
 
     const courses = [
         {
@@ -40,7 +52,7 @@ const Education = () => {
             level: "Beginner",
             image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&q=80&w=400",
             category: "Digital Literacy",
-            videoId: "FG5b7C0juJI" // UPI Payment Tutorial
+            videoId: "W1Nne0LhuVw" // Digital Banking / UPI Guide
         },
         {
             title: "Advanced Tailoring",
@@ -50,7 +62,7 @@ const Education = () => {
             level: "Expert",
             image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&q=80&w=400",
             category: "Vocational",
-            videoId: "5qN876kF2AA" // Tailoring Basics Tutorial
+            videoId: "Q0d-4J0rJ9s" // Advanced Stitching
         },
         {
             title: "Safe Internet for Girls",
@@ -60,7 +72,7 @@ const Education = () => {
             level: "Intermediate",
             image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400",
             category: "Safety",
-            videoId: "ULGILG-ZhO0" // Internet Safety for Women & Girls
+            videoId: "M9k7_H7q5t8" // Cyber Safety Awareness
         },
         {
             title: "Basic Tailoring Skills",
@@ -70,7 +82,7 @@ const Education = () => {
             level: "Beginner",
             image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=400",
             category: "Vocational",
-            videoId: "wvb_JQ3NFOM" // Sewing for Beginners
+            videoId: "6X0Z1v_7_yY" // Basic Stitching Class
         },
         {
             title: "Poetry & Creative Writing",
@@ -80,7 +92,7 @@ const Education = () => {
             level: "Beginner",
             image: "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?auto=format&fit=crop&q=80&w=400",
             category: "Arts & Expression",
-            videoId: "2n5eYOnVvS4" // Poetry Writing Guide
+            videoId: "tQo5w9_zP18" // Creative Writing Tips
         },
         {
             title: "Hindi Poetry Recitation",
@@ -90,7 +102,7 @@ const Education = () => {
             level: "Intermediate",
             image: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&q=80&w=400",
             category: "Arts & Expression",
-            videoId: "kJQP7kiw5Fk" // Hindi Poetry Recitation
+            videoId: "jNFXN2X7wS8" // Hindi Poetry
         }
     ];
 

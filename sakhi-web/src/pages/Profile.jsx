@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { User, Package, CreditCard, MessageCircle, ArrowRight, CheckCircle2, Clock, ShoppingBag, Plus, Trash2, Loader2 } from 'lucide-react';
+import { User, Package, CreditCard, MessageCircle, ArrowRight, CheckCircle2, Clock, ShoppingBag, Plus, Trash2, Loader2, Award, Trophy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser, updateUser } from '../services/api';
 import { getUserData, isAuthenticated, clearAuthData, setAuthData, getAuthToken } from '../utils/auth';
+import { getGamificationData, getUserBadges, getNextLevelPoints, getNextBadgeProgress, BADGES } from '../utils/gamification';
 
 const Profile = () => {
     const { t } = useLanguage();
@@ -13,6 +14,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState('Sakhi User');
     const [isCreator, setIsCreator] = useState(false);
+    const [gamificationData, setGamificationData] = useState(null);
 
     useEffect(() => {
         // Check if user is logged in
@@ -55,6 +57,10 @@ const Profile = () => {
         };
 
         loadUserData();
+        
+        // Load gamification data
+        const gamData = getGamificationData();
+        setGamificationData(gamData);
     }, [navigate]);
 
     const handleBecomeCreator = async () => {
@@ -197,6 +203,12 @@ const Profile = () => {
                             >
                                 <MessageCircle size={20} /> {t.chatWithCreator}
                             </button>
+                            <button
+                                onClick={() => setActiveTab('achievements')}
+                                className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'achievements' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg shadow-yellow-100' : 'text-gray-600 hover:bg-yellow-50'}`}
+                            >
+                                <Trophy size={20} /> Achievements
+                            </button>
 
                             {isCreator ? (
                                 <button
@@ -308,14 +320,110 @@ const Profile = () => {
                                         </div>
                                         <h3 className="text-2xl font-black text-gray-800 mb-2">No active chats</h3>
                                         <p className="text-gray-500 font-medium mb-8">Start a conversation from any product page to ask questions about the heritage and art.</p>
-                                        <button
-                                            onClick={() => window.location.href = '/skill-hub'}
-                                            className="bg-primary text-white px-8 py-3 rounded-2xl font-black shadow-lg hover:shadow-pink-100 flex items-center gap-2"
-                                        >
-                                            Visit Marketplace <ArrowRight size={20} />
-                                        </button>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {activeTab === 'achievements' && gamificationData && (
+                            <div className="animate-fadeIn">
+                                <h2 className="text-4xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                                    <Trophy className="text-yellow-500" /> Your Achievements
+                                </h2>
+
+                                {/* Level & Points */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                                    <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white p-8 rounded-3xl shadow-xl">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <TrendingUp size={24} />
+                                            <p className="text-sm font-black uppercase tracking-widest">Level</p>
+                                        </div>
+                                        <p className="text-6xl font-black">{gamificationData.level}</p>
+                                        <p className="text-sm mt-2 opacity-90">
+                                            {gamificationData.totalPoints} / {getNextLevelPoints(gamificationData.totalPoints)} XP
+                                        </p>
+                                        <div className="w-full bg-white/30 h-2 rounded-full mt-3 overflow-hidden">
+                                            <div 
+                                                className="bg-white h-full rounded-full transition-all" 
+                                                style={{ width: `${(gamificationData.totalPoints / getNextLevelPoints(gamificationData.totalPoints)) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-gradient-to-br from-pink-500 to-purple-600 text-white p-8 rounded-3xl shadow-xl">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <Award size={24} />
+                                            <p className="text-sm font-black uppercase tracking-widest">Total Points</p>
+                                        </div>
+                                        <p className="text-6xl font-black">{gamificationData.totalPoints.toLocaleString()}</p>
+                                        <p className="text-sm mt-2 opacity-90">Keep earning!</p>
+                                    </div>
+                                    
+                                    <div className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white p-8 rounded-3xl shadow-xl">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <Trophy size={24} />
+                                            <p className="text-sm font-black uppercase tracking-widest">Badges</p>
+                                        </div>
+                                        <p className="text-6xl font-black">{gamificationData.badges.length}</p>
+                                        <p className="text-sm mt-2 opacity-90">Out of {Object.keys(BADGES).length}</p>
+                                    </div>
+                                </div>
+
+                                {/* Earned Badges */}
+                                <div className="mb-10">
+                                    <h3 className="text-2xl font-black text-gray-900 mb-6">Earned Badges 🏆</h3>
+                                    {getUserBadges().length > 0 ? (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {getUserBadges().map((badge) => (
+                                                <div key={badge.id} className={`${badge.color} text-white p-6 rounded-3xl shadow-lg text-center transform hover:scale-105 transition-all`}>
+                                                    <div className="text-5xl mb-3">{badge.icon}</div>
+                                                    <h4 className="font-black text-sm mb-1">{badge.name}</h4>
+                                                    <p className="text-xs opacity-90">{badge.description}</p>
+                                                    <div className="mt-3 bg-white/20 px-3 py-1 rounded-full text-xs font-black">
+                                                        +{badge.points} pts
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12 bg-gray-50 rounded-3xl">
+                                            <Award size={48} className="mx-auto mb-4 text-gray-300" />
+                                            <p className="text-gray-500 font-medium">Start earning badges by completing activities!</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Progress to Next Badges */}
+                                <div>
+                                    <h3 className="text-2xl font-black text-gray-900 mb-6">Next Achievements 🎯</h3>
+                                    <div className="space-y-4">
+                                        {getNextBadgeProgress().slice(0, 5).map((progress, idx) => (
+                                            <div key={idx} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`${progress.badge.color} text-white w-12 h-12 rounded-2xl flex items-center justify-center text-2xl`}>
+                                                            {progress.badge.icon}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-black text-gray-900">{progress.badge.name}</h4>
+                                                            <p className="text-sm text-gray-500">{progress.badge.description}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-2xl font-black text-gray-900">{progress.current}/{progress.target}</p>
+                                                        <p className="text-xs text-gray-500 font-bold">+{progress.badge.points} pts</p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`${progress.badge.color} h-full rounded-full transition-all`}
+                                                        style={{ width: `${Math.min(progress.percentage, 100)}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
 

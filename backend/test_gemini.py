@@ -27,12 +27,14 @@ def test_google_ai():
         print("   Please add your API key to backend/.env")
         return False
     
-    print(f"✅ API Key found: {api_key[:20]}...")
+    print(f"✅ API Key found: ********************")
     
     try:
         # Configure Google AI
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model_name = "gemini-2.5-flash"
+        print(f"📡 Configuring model: {model_name}")
+        model = genai.GenerativeModel(model_name)
         
         print("\n📡 Sending test request to Google Gemini...")
         

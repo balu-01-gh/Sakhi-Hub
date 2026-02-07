@@ -8,7 +8,7 @@ import os
 load_dotenv()
 
 api_key = os.getenv("GOOGLE_API_KEY")
-print(f"API Key loaded: {api_key[:20]}..." if api_key else "No API key found!")
+print(f"API Key loaded: ********************" if api_key else "No API key found!")
 
 genai.configure(api_key=api_key)
 

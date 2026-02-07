@@ -81,14 +81,18 @@ class PeriodChatRequest(BaseModel):
     """
     age: int = Field(..., ge=10, le=60, description="User's age")
     last_period_date: str = Field(..., description="Last period date in YYYY-MM-DD format")
-    message: str = Field(..., min_length=1, max_length=1000, description="User's question/message")
+    user_message: str = Field(..., min_length=1, max_length=1000, description="User's question/message")
+    language: Optional[str] = Field(default="en", description="Preferred language: en, hi, te")
+    history: Optional[List[dict]] = Field(default=[], description="Chat history")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "age": 25,
                 "last_period_date": "2026-01-10",
-                "message": "I have severe cramps. What can I do?"
+                "user_message": "I have severe cramps. What can I do?",
+                "language": "en",
+                "history": []
             }
         }
 
@@ -96,14 +100,18 @@ class PregnancyChatRequest(BaseModel):
     """
     Request model for Pregnancy Care Bot
     """
-    pregnancy_confirmation_date: str = Field(..., description="Pregnancy confirmation date in YYYY-MM-DD format")
-    message: str = Field(..., min_length=1, max_length=1000, description="User's question/message")
+    pregnancy_start_date: str = Field(..., description="Pregnancy confirmation/start date in YYYY-MM-DD format")
+    user_message: str = Field(..., min_length=1, max_length=1000, description="User's question/message")
+    language: Optional[str] = Field(default="en", description="Preferred language: en, hi, te")
+    history: Optional[List[dict]] = Field(default=[], description="Chat history")
     
     class Config:
         json_schema_extra = {
             "example": {
-                "pregnancy_confirmation_date": "2025-11-01",
-                "message": "What foods should I eat in my second trimester?"
+                "pregnancy_start_date": "2025-11-01",
+                "user_message": "What foods should I eat in my second trimester?",
+                "language": "en",
+                "history": []
             }
         }
 

@@ -6,11 +6,17 @@ const WARNING_TIME = 5 * 60 * 1000; // Show warning 5 minutes before timeout
 let timeoutTimer = null;
 let warningTimer = null;
 let lastActivity = Date.now();
+let savedOnWarning = null;
+let savedOnTimeout = null;
 
 /**
  * Initialize session timeout tracking
  */
 export const initSessionTimeout = (onWarning, onTimeout) => {
+    // Save callbacks for reset
+    savedOnWarning = onWarning;
+    savedOnTimeout = onTimeout;
+
     // Clear existing timers
     clearSessionTimers();
     
@@ -19,12 +25,12 @@ export const initSessionTimeout = (onWarning, onTimeout) => {
     
     // Set warning timer
     warningTimer = setTimeout(() => {
-        if (onWarning) onWarning();
+        if (savedOnWarning) savedOnWarning();
     }, SESSION_TIMEOUT - WARNING_TIME);
     
     // Set timeout timer
     timeoutTimer = setTimeout(() => {
-        if (onTimeout) onTimeout();
+        if (savedOnTimeout) savedOnTimeout();
     }, SESSION_TIMEOUT);
     
     // Listen for user activity
@@ -42,8 +48,10 @@ const resetSessionTimeout = () => {
     // Only reset if more than 1 minute has passed since last activity
     if (now - lastActivity > 60000) {
         lastActivity = now;
-        clearSessionTimers();
-        // Note: You'll need to call initSessionTimeout again from your component
+        // Re-initialize timers with saved callbacks
+        if (savedOnWarning && savedOnTimeout) {
+            initSessionTimeout(savedOnWarning, savedOnTimeout);
+        }
     }
 };
 

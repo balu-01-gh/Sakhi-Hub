@@ -14,7 +14,7 @@ const HealthAssistant = () => {
             </p>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">
-                <Link to="/period-bot" className="group">
+                <Link to="/health/period-bot" className="group">
                     <div className="bg-white p-8 rounded-3xl shadow-lg border border-pink-100 hover:border-pink-300 transition-all cursor-pointer h-full">
                         <div className="bg-pink-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 text-primary">
                             <Calendar size={32} />
@@ -25,7 +25,7 @@ const HealthAssistant = () => {
                     </div>
                 </Link>
 
-                <Link to="/pregnancy-bot" className="group">
+                <Link to="/health/pregnancy-bot" className="group">
                     <div className="bg-white p-8 rounded-3xl shadow-lg border border-purple-100 hover:border-purple-300 transition-all cursor-pointer h-full">
                         <div className="bg-purple-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 text-purple-600">
                             <Sparkles size={32} />
@@ -36,7 +36,7 @@ const HealthAssistant = () => {
                     </div>
                 </Link>
 
-                <Link to="/krishi-bot" className="group">
+                <Link to="/health/krishi-bot" className="group">
                     <div className="bg-white p-8 rounded-3xl shadow-lg border border-green-100 hover:border-green-300 transition-all cursor-pointer h-full">
                         <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 text-green-600">
                             <ShoppingBag size={32} />

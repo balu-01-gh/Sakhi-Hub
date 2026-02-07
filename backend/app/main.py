@@ -5,24 +5,29 @@ This is the entry point for the backend server.
 It initializes the FastAPI app, connects to MongoDB, and registers all routes.
 """
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Depends
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from app.config.settings import settings
-from app.routes import skill_hub, health_bots
+from app.routes import skill_hub, health_bots, auth, community, krishi_bot, schemes
+from app.middleware.rate_limiter import api_limiter, auth_limiter
+from app.socket_events import sio
+import socketio
 import uvicorn
 
 # ============================================
 # CREATE FASTAPI APP
 # ============================================
 
-app = FastAPI(
+fastapi_app = FastAPI(
     title="SAKHI HUB API",
     description="Backend API for Rural Women Empowerment Platform - Skill Hub + Health Care Assistant",
     version="1.0.0",
     docs_url="/docs",  # Swagger UI
-    redoc_url="/redoc"  # ReDoc UI
+    redoc_url="/redoc",  # ReDoc UI
+    dependencies=[Depends(api_limiter)]  # Global rate limit
 )
 
 # ============================================
@@ -30,13 +35,23 @@ app = FastAPI(
 # ============================================
 
 # Allow frontend to communicate with backend
-app.add_middleware(
+fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
+
+# ============================================
+# MOUNT STATIC FILES
+# ============================================
+import os
+static_path = os.path.join(os.path.dirname(__file__), "static")
+if not os.path.exists(static_path):
+    os.makedirs(static_path)
+    
+fastapi_app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # ============================================
 # DATABASE CONNECTION
@@ -46,7 +61,7 @@ app.add_middleware(
 db = None
 mongo_client = None
 
-@app.on_event("startup")
+@fastapi_app.on_event("startup")
 async def startup_db_client():
     """
     Initialize MongoDB connection on application startup
@@ -54,8 +69,8 @@ async def startup_db_client():
     global db, mongo_client
     
     try:
-        # Connect to MongoDB
-        mongo_client = MongoClient(settings.MONGODB_URL)
+        # Connect to MongoDB with shorter timeout
+        mongo_client = MongoClient(settings.MONGODB_URL, serverSelectionTimeoutMS=5000)
         
         # Test connection
         mongo_client.admin.command('ping')
@@ -66,8 +81,11 @@ async def startup_db_client():
         
         # Initialize database in route modules
         skill_hub.init_db(db)
+        auth.init_db(db)
+        community.init_db(db)
         
         # Create indexes for better performance
+        db.users.create_index("phone", unique=True)
         db.creators.create_index("name")
         db.creators.create_index("skill_category")
         db.products.create_index("creator_name")
@@ -76,12 +94,13 @@ async def startup_db_client():
         print(f"✅ Database '{settings.DATABASE_NAME}' initialized")
         
     except ConnectionFailure as e:
-        print(f"❌ Failed to connect to MongoDB: {e}")
-        print("⚠️  Make sure MongoDB is running!")
+        print(f"⚠️  MongoDB not available: {e}")
+        print("⚠️  Server will start but database features won't work.")
+        print("⚠️  Install and start MongoDB to enable authentication and data storage.")
     except Exception as e:
-        print(f"❌ Database initialization error: {e}")
+        print(f"⚠️  Database initialization error: {e}")
 
-@app.on_event("shutdown")
+@fastapi_app.on_event("shutdown")
 async def shutdown_db_client():
     """
     Close MongoDB connection on application shutdown
@@ -96,17 +115,29 @@ async def shutdown_db_client():
 # REGISTER ROUTES
 # ============================================
 
+# Include Authentication routes
+fastapi_app.include_router(auth.router, dependencies=[Depends(auth_limiter)])
+
 # Include Skill Hub routes
-app.include_router(skill_hub.router)
+fastapi_app.include_router(skill_hub.router)
 
 # Include Health Bots routes
-app.include_router(health_bots.router)
+fastapi_app.include_router(health_bots.router)
+
+# Include Community routes
+fastapi_app.include_router(community.router)
+
+# Include Schemes routes
+fastapi_app.include_router(schemes.router, prefix="/api/schemes", tags=["Schemes"])
+
+# Include Krishi Bot routes
+fastapi_app.include_router(krishi_bot.router)
 
 # ============================================
 # ROOT ENDPOINT
 # ============================================
 
-@app.get("/", status_code=status.HTTP_200_OK)
+@fastapi_app.get("/", status_code=status.HTTP_200_OK)
 async def root():
     """
     Root endpoint - API welcome message
@@ -126,7 +157,7 @@ async def root():
         "status": "running"
     }
 
-@app.get("/health", status_code=status.HTTP_200_OK)
+@fastapi_app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check():
     """
     Health check endpoint - verify API is running
@@ -143,7 +174,7 @@ async def health_check():
 # SEED DATA FOR DEMO (OPTIONAL)
 # ============================================
 
-@app.post("/seed-demo-data", status_code=status.HTTP_201_CREATED)
+@fastapi_app.post("/seed-demo-data", status_code=status.HTTP_201_CREATED)
 async def seed_demo_data():
     """
     Seed database with demo data for hackathon presentation
@@ -260,6 +291,13 @@ async def seed_demo_data():
         }
 
 # ============================================
+# MOUNT SOCKET.IO APP
+# ============================================
+
+# Wrap FastAPI app with Socket.IO
+app = socketio.ASGIApp(sio, fastapi_app)
+
+# ============================================
 # RUN APPLICATION
 # ============================================
 
@@ -269,5 +307,5 @@ if __name__ == "__main__":
         "app.main:app",
         host=settings.API_HOST,
         port=settings.API_PORT,
-        reload=True  # Auto-reload on code changes (development only)
+        reload=False  # Disabled reload to avoid multiprocessing issues
     )

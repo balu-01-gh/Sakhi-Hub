@@ -3,9 +3,9 @@ import CreatorCard from '../components/CreatorCard';
 import ProductCard from '../components/ProductCard';
 import RegisterModal from '../components/RegisterModal';
 import ProductDetailModal from '../components/ProductDetailModal';
-import { getCreators, getProducts } from '../services/api';
+import { getCreators, getProducts, createProfile } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
-import { ShoppingBag, Users, Sparkles, Filter } from 'lucide-react';
+import { ShoppingBag, Users, Sparkles, Filter, Loader2, AlertCircle } from 'lucide-react';
 
 const MOCK_CREATORS = [
     { id: 1, name: "Lakshmi Devi", village: "Rampur", skill_category: "Pottery & Clay", experience: "15 Years", contact: "9876543210", work_samples: ["https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=400"] },
@@ -27,36 +27,83 @@ const MOCK_PRODUCTS = [
 
 const SkillHub = () => {
     const { t } = useLanguage();
-    const [creators, setCreators] = useState(MOCK_CREATORS);
-    const [products, setProducts] = useState(MOCK_PRODUCTS);
+    const [creators, setCreators] = useState([]);
+    const [products, setProducts] = useState([]);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [filter, setFilter] = useState('All');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const categories = ['All', 'Pottery & Clay', 'Tailoring', 'Art', 'Handicrafts'];
 
     useEffect(() => {
-        // Load dynamic data from localStorage
-        const dynamicProducts = JSON.parse(localStorage.getItem('all_products') || '[]');
-        const dynamicCreators = JSON.parse(localStorage.getItem('all_creators') || '[]');
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                // Try to fetch from backend
+                const [creatorsData, productsData] = await Promise.all([
+                    getCreators().catch(() => []),
+                    getProducts().catch(() => [])
+                ]);
+                
+                // If backend data is empty, use mock data as fallback
+                if (creatorsData.length === 0) {
+                    setCreators(MOCK_CREATORS);
+                } else {
+                    setCreators(creatorsData);
+                }
+                
+                if (productsData.length === 0) {
+                    setProducts(MOCK_PRODUCTS);
+                } else {
+                    setProducts(productsData);
+                }
+                
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                // Fallback to mock data
+                setCreators(MOCK_CREATORS);
+                setProducts(MOCK_PRODUCTS);
+                setError('Using demo data - backend not connected');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        // Merge and unique
-        const combinedProducts = [...dynamicProducts, ...MOCK_PRODUCTS];
-        const uniqueProducts = combinedProducts.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
-
-        const combinedCreators = [...dynamicCreators, ...MOCK_CREATORS];
-        const uniqueCreators = combinedCreators.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
-
-        setProducts(uniqueProducts);
-        setCreators(uniqueCreators);
+        fetchData();
     }, []);
 
-    const handleRegister = (newCreator) => {
-        setCreators([newCreator, ...creators]);
-        const dynamicCreators = JSON.parse(localStorage.getItem('all_creators') || '[]');
-        localStorage.setItem('all_creators', JSON.stringify([newCreator, ...dynamicCreators]));
-        localStorage.setItem('is_creator', 'true');
-        alert("Registration Successful! You can now manage your shop in your Profile.");
+    const handleRegister = async (newCreator) => {
+        try {
+            // Map frontend form data to backend schema
+            const backendData = {
+                name: newCreator.name,
+                village: newCreator.village,
+                skill_category: newCreator.skill_category,
+                experience: newCreator.experience,
+                work_samples: newCreator.work_samples,
+                contact_number: newCreator.contact
+            };
+            
+            await createProfile(backendData);
+            
+            // Update local state optimistically or re-fetch
+            const creatorWithId = { ...newCreator, id: Date.now() }; // Backend returns ID but we can simulate for UI
+            setCreators([creatorWithId, ...creators]);
+            
+            // Keep localStorage fallback for now if needed, but backend is primary
+            const dynamicCreators = JSON.parse(localStorage.getItem('all_creators') || '[]');
+            localStorage.setItem('all_creators', JSON.stringify([creatorWithId, ...dynamicCreators]));
+            localStorage.setItem('is_creator', 'true');
+            
+            alert("Registration Successful! Your profile and work samples are now live.");
+        } catch (error) {
+            console.error("Failed to register profile", error);
+            alert("Registration failed. Please try again.");
+        }
     };
 
     const filteredCreators = filter === 'All'

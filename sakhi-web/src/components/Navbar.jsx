@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     Heart, ShoppingBag, Activity, Languages,
-    User, ShieldAlert, GraduationCap, Gavel, LogOut
+    User, ShieldAlert, GraduationCap, Gavel, LogOut, TrendingUp
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { isAuthenticated, clearAuthData } from '../utils/auth';
@@ -84,7 +84,7 @@ const Navbar = () => {
                         <Link to="/skill-hub" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
                             <ShoppingBag size={18} /> {t.skillHub}
                         </Link>
-                        <Link to="/health-assistant" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
+                        <Link to="/health" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
                             <Activity size={18} /> {t.health}
                         </Link>
                         <Link to="/education" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
@@ -92,6 +92,9 @@ const Navbar = () => {
                         </Link>
                         <Link to="/schemes" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
                             <Gavel size={18} /> {t.schemes}
+                        </Link>
+                        <Link to="/analytics" className="hover:text-pink-200 font-bold flex items-center gap-1.5 transition-colors">
+                            <TrendingUp size={18} /> Analytics
                         </Link>
                         
                         {userLoggedIn && (

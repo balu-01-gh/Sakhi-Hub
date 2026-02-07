@@ -18,18 +18,41 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch event
+// Fetch event - Runtime Caching Strategy
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
+        // 1. Cache hit - return response
         if (response) {
           return response;
         }
-        return fetch(event.request);
-      }
-    )
+
+        // 2. Clone the request because it's a stream and can only be consumed once
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest).then(
+          (response) => {
+            // Check if we received a valid response
+            if(!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            // 3. Clone the response
+            const responseToCache = response.clone();
+
+            // 4. Cache valid JS/CSS/Image assets dynamically
+            if (event.request.url.match(/\.(js|css|png|jpg|jpeg|svg|gif)$/)) {
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(event.request, responseToCache);
+                  });
+            }
+
+            return response;
+          }
+        );
+      })
   );
 });
 

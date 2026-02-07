@@ -9,10 +9,8 @@ from fastapi import APIRouter, HTTPException, status
 from app.models.schemas import PeriodChatRequest, PregnancyChatRequest, ChatResponse
 from app.services.ai_service import AIService
 from app.config.settings import settings
-from app.prompts.krishi_bot_prompt import get_krishi_prompt
 from datetime import datetime, timedelta
 from typing import Dict
-from pydantic import BaseModel
 
 # Create router
 router = APIRouter(prefix="/api/health-bots", tags=["Health Bots"])
@@ -151,7 +149,7 @@ async def period_chat(request: PeriodChatRequest):
         
         # Get AI response with context
         ai_response = await ai_service.get_period_chat_response(
-            user_message=request.message,
+            user_message=request.user_message,
             age=request.age,
             last_period_date=request.last_period_date,
             next_period_prediction=period_info["next_period_date"],
@@ -197,12 +195,12 @@ async def pregnancy_chat(request: PregnancyChatRequest):
     """
     try:
         # Calculate pregnancy information
-        pregnancy_info = calculate_pregnancy_info(request.pregnancy_confirmation_date)
+        pregnancy_info = calculate_pregnancy_info(request.pregnancy_start_date)
         
         # Get AI response with context
         ai_response = await ai_service.get_pregnancy_chat_response(
-            user_message=request.message,
-            confirmation_date=request.pregnancy_confirmation_date,
+            user_message=request.user_message,
+            confirmation_date=request.pregnancy_start_date,
             weeks_pregnant=pregnancy_info["weeks_pregnant"],
             trimester=pregnancy_info["trimester"],
             due_date=pregnancy_info["due_date"]
@@ -227,6 +225,7 @@ async def pregnancy_chat(request: PregnancyChatRequest):
             detail=f"Failed to process pregnancy chat request: {str(e)}"
         )
 
+
 # ============================================
 # HEALTH CHECK ENDPOINT
 # ============================================
@@ -244,42 +243,4 @@ async def health_check():
         "message": "Health bots are ready" if is_connected else "AI service connection issue"
     }
 
-# ============================================
-# KRISHI BOT (AGRICULTURE) ENDPOINT
-# ============================================
-
-class KrishiBotRequest(BaseModel):
-    message: str
-    user_info: dict  # Contains farm_size, crops, location, season
-
-@router.post("/krishi-bot", response_model=ChatResponse)
-async def krishi_bot_chat(request: KrishiBotRequest):
-    """
-    Krishi Sakhi - Agricultural guidance for women farmers
-    
-    Provides personalized farming advice based on:
-    - Farm size
-    - Current/planned crops
-    - Location (for weather and soil context)
-    - Season
-    """
-    try:
-        # Generate agricultural system prompt with user context
-        system_prompt = get_krishi_prompt(request.user_info)
-        
-        # Get AI response
-        ai_response = await ai_service.get_chat_response(
-            user_message=request.message,
-            system_prompt=system_prompt
-        )
-        
-        return ChatResponse(
-            response=ai_response,
-            status="success"
-        )
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get Krishi Bot response: {str(e)}"
-        )
+# End of file

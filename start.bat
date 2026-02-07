@@ -31,7 +31,7 @@ echo [INFO] Starting Frontend Server...
 echo.
 
 REM Start frontend in new window
-start "SAKHI HUB - Frontend" cmd /k "cd frontend && npm start"
+start "SAKHI HUB - Frontend" cmd /k "cd sakhi-web && npm run dev"
 
 echo.
 echo ========================================

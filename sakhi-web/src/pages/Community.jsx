@@ -3,6 +3,10 @@ import { useLanguage } from '../context/LanguageContext';
 import { Users, MessageSquare, Vote, Bell, ArrowRight, User, ShieldAlert } from 'lucide-react';
 import SafetyCircleModal from '../components/SafetyCircleModal';
 import { sendSOSAlert, getSafetyCircle } from '../utils/sosAlert';
+import { awardPoints } from '../utils/gamification';
+import BadgeNotification from '../components/BadgeNotification';
+import CommunityChat from '../components/CommunityChat';
+
 
 const Community = () => {
     const { t } = useLanguage();
@@ -10,6 +14,7 @@ const Community = () => {
     const [sosActive, setSosActive] = useState(false);
     const [sosMessage, setSosMessage] = useState('');
     const safetyCircle = getSafetyCircle();
+    const [newBadge, setNewBadge] = useState(null);
     
     const [polls, setPolls] = useState(() => {
         const saved = localStorage.getItem('village_polls');
@@ -22,6 +27,11 @@ const Community = () => {
     const handleVote = (id) => {
         const updated = polls.map(p => {
             if (p.id === id && !p.voted) {
+                // Award points for voting
+                const result = awardPoints('VOTE');
+                if (result.newBadges && result.newBadges.length > 0) {
+                    setNewBadge(result.newBadges[result.newBadges.length - 1]);
+                }
                 return { ...p, votes: p.votes + 1, voted: true };
             }
             return p;
@@ -48,6 +58,7 @@ const Community = () => {
         
         setTimeout(() => {
             setSosActive(false);
+            {newBadge && <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />}
             setSosMessage('');
         }, 5000);
     };
@@ -102,24 +113,7 @@ const Community = () => {
                         </div>
                     </section>
 
-                    <section className="bg-gray-900 p-10 rounded-[4rem] text-white shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-12 opacity-10">
-                            <MessageSquare size={200} />
-                        </div>
-                        <h3 className="text-3xl font-black mb-6 flex items-center gap-3 relative z-10">
-                            <MessageSquare className="text-yellow-500" /> Discussion Rooms
-                        </h3>
-                        <div className="grid md:grid-cols-2 gap-4 relative z-10">
-                            <div className="bg-white/10 p-6 rounded-3xl border border-white/10 hover:bg-white/20 cursor-pointer transition-all">
-                                <p className="font-black text-xl mb-1">SHG Leaders Group</p>
-                                <p className="text-white/60 text-sm">Update on monthly savings and loans</p>
-                            </div>
-                            <div className="bg-white/10 p-6 rounded-3xl border border-white/10 hover:bg-white/20 cursor-pointer transition-all">
-                                <p className="font-black text-xl mb-1">Organic Farmers Circle</p>
-                                <p className="text-white/60 text-sm">Discussion on new seed distribution</p>
-                            </div>
-                        </div>
-                    </section>
+                    <CommunityChat />
                 </div>
 
                 {/* Sidebar: Announcements */}

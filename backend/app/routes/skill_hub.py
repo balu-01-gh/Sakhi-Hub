@@ -4,11 +4,14 @@ Skill Hub API Routes
 Handles creator profiles and product management
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from app.models.schemas import CreatorProfile, Product, SuccessResponse, ErrorResponse
 from pymongo import MongoClient
 from app.config.settings import settings
 from typing import List
+import shutil
+import os
+import uuid
 from datetime import datetime
 
 # Create router
@@ -25,6 +28,36 @@ def init_db(database):
 # ============================================
 # CREATOR PROFILE ENDPOINTS
 # ============================================
+
+@router.post("/uploads/work-sample", status_code=status.HTTP_201_CREATED)
+async def upload_work_sample(file: UploadFile = File(...)):
+    """
+    Upload a work sample image
+    """
+    try:
+        # Create unique filename
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        
+        # Define upload path (relative to app directory)
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads")
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+            
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Return URL (relative path that will be served by StaticFiles)
+        return {"url": f"/static/uploads/{unique_filename}"}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload image: {str(e)}"
+        )
 
 @router.post("/create-profile", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 async def create_creator_profile(profile: CreatorProfile):

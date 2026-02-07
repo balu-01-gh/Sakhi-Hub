@@ -3,13 +3,19 @@ import { useLanguage } from '../context/LanguageContext';
 import { ShieldAlert, Phone, MapPin, Users, Bell, ShieldCheck, HeartPulse } from 'lucide-react';
 import SafetyCircleModal from '../components/SafetyCircleModal';
 import { sendSOSAlert, getSafetyCircle } from '../utils/sosAlert';
+import MapComponent from '../components/MapComponent';
+import chatService from '../utils/chat';
+import { getUserData } from '../utils/auth';
 
 const Safety = () => {
     const { t } = useLanguage();
     const [sosActive, setSosActive] = useState(false);
     const [showCircleModal, setShowCircleModal] = useState(false);
     const [sosMessage, setSosMessage] = useState('');
+    const [watchId, setWatchId] = useState(null);
     const safetyCircle = getSafetyCircle();
+    const userData = getUserData();
+    const userId = userData ? userData.id : 'anonymous_user';
 
     const emergencyContacts = [
         { name: "Police Helpline", phone: "112", icon: <ShieldAlert className="text-red-500" /> },
@@ -21,6 +27,26 @@ const Safety = () => {
     const handleSOS = async () => {
         setSosActive(true);
         setSosMessage('Sending SOS alert...');
+        
+        // Share LIVE location via websocket
+        if (navigator.geolocation) {
+            const id = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    console.log('📍 Live location update:', latitude, longitude);
+                    chatService.shareLocation(userId, { lat: latitude, lng: longitude });
+                },
+                (error) => {
+                    console.error('Location Error:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+            setWatchId(id);
+        }
         
         try {
             const result = await sendSOSAlert();
@@ -37,8 +63,24 @@ const Safety = () => {
         setTimeout(() => {
             setSosActive(false);
             setSosMessage('');
+            
+            // Stop location tracking when SOS is deactivated (after 5s in this demo logic, but usually we'd keep it on longer)
+            if (watchId !== null) {
+                // Keep tracking for a bit longer in real app, but for cleanup here:
+                // navigator.geolocation.clearWatch(watchId);
+                // setWatchId(null);
+            }
         }, 5000);
     };
+
+    // Cleanup on unmount
+    React.useEffect(() => {
+        return () => {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        };
+    }, [watchId]);
 
     return (
         <div className="container mx-auto px-4 py-12 max-w-6xl animate-fadeIn">
@@ -81,21 +123,9 @@ const Safety = () => {
                         <h3 className="text-xl font-black mb-6 flex items-center gap-2">
                             <MapPin className="text-secondary" /> Safe Spaces Nearby
                         </h3>
-                        <div className="space-y-4">
-                            <div className="bg-white/10 p-4 rounded-2xl flex justify-between items-center border border-white/10">
-                                <div>
-                                    <p className="font-bold text-lg">Rampur Anganwadi Center</p>
-                                    <p className="text-gray-400 text-sm">Open 24/7 for emergency shelter</p>
-                                </div>
-                                <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-black">2.4 KM</span>
-                            </div>
-                            <div className="bg-white/10 p-4 rounded-2xl flex justify-between items-center border border-white/10">
-                                <div>
-                                    <p className="font-bold text-lg">Village Panchayat Hall</p>
-                                    <p className="text-gray-400 text-sm">Police-patrolled secure area</p>
-                                </div>
-                                <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-black">4.1 KM</span>
-                            </div>
+                        <MapComponent />
+                        <div className="mt-4 text-center text-sm text-gray-400 font-medium">
+                            Showing Safe Spaces & Your Location
                         </div>
                     </div>
                 </div>

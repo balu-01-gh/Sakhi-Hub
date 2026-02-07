@@ -1,26 +1,67 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, User } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { initChat, joinChatRoom, sendMessage, onMessage } from '../utils/chat';
+import { getUserData } from '../utils/auth';
 
 const UserChatModal = ({ isOpen, onClose, creatorName, productName }) => {
     const { t } = useLanguage();
-    const chatKey = `chat_${creatorName}_${productName}`.replace(/\s+/g, '_');
-
-    const [messages, setMessages] = useState(() => {
-        const saved = localStorage.getItem(chatKey);
-        return saved ? JSON.parse(saved) : [
-            { role: 'assistant', content: `Namaste! I am ${creatorName}. Thank you for your interest in my ${productName}. How can I help you today?` }
-        ];
-    });
+    
+    // 1. All Hooks must be declared at the top level
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const bottomRef = useRef(null);
+    const [roomId, setRoomId] = useState('');
 
+    // 2. Initialize Chat Room when opening
     useEffect(() => {
-        localStorage.setItem(chatKey, JSON.stringify(messages));
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, chatKey]);
+        if (isOpen) {
+            const user = getUserData();
+            const generatedRoomId = `room_${creatorName}_${productName}`.replace(/\s+/g, '_');
+            setRoomId(generatedRoomId);
+            
+            // Connect to socket
+            initChat();
+            joinChatRoom(generatedRoomId);
 
-    if (!isOpen) return null;
+            // Load local history or empty
+            const saved = localStorage.getItem(generatedRoomId);
+            if (saved) {
+                setMessages(JSON.parse(saved));
+            } else {
+                setMessages([
+                    { role: 'assistant', content: `Namaste! I am ${creatorName}. Thank you for your interest in my ${productName}. How can I help you today?` }
+                ]);
+            }
+        }
+    }, [isOpen, creatorName, productName]);
+
+    // 3. Listen for incoming messages
+    useEffect(() => {
+        // Subscribe to socket messages
+        const handleMessage = (data) => {
+            // Using a simple check, in real app check roomId match
+            if (data.roomId === roomId || !data.roomId) {
+                 setMessages(prev => {
+                    const newMsgs = [...prev, { role: 'assistant', content: data.text || data.message }];
+                    localStorage.setItem(roomId, JSON.stringify(newMsgs));
+                    return newMsgs;
+                 });
+            }
+        };
+
+        if (isOpen) {
+            onMessage(handleMessage);
+        }
+        // Cleanup not strictly feasible with current simplified utils, but okay for this session
+    }, [isOpen, roomId]);
+
+    // 4. Scroll effect
+    useEffect(() => {
+        if (isOpen) {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isOpen]);
 
     const handleSend = (e) => {
         e.preventDefault();
@@ -29,34 +70,16 @@ const UserChatModal = ({ isOpen, onClose, creatorName, productName }) => {
         const userText = input.trim();
         const newMessages = [...messages, { role: 'user', content: userText }];
         setMessages(newMessages);
+        localStorage.setItem(roomId, JSON.stringify(newMessages));
         setInput('');
 
-        // Intelligence: Mock response variations
-        setTimeout(() => {
-            let reply = "Dhanyawad (Thank you)! I put a lot of heart into this. Would you like to know more about how it's made?";
-
-            const lowerText = userText.toLowerCase();
-            if (lowerText.includes('price') || lowerText.includes('rupees') || lowerText.includes('cost')) {
-                reply = "The price is mentioned on the product page, but I can offer a small discount if you buy more items! Are you looking for multiple pieces?";
-            } else if (lowerText.includes('how') || lowerText.includes('make') || lowerText.includes('material')) {
-                reply = `I use traditional ${productName.toLowerCase().includes('bamboo') ? 'bamboo' : 'village'} techniques passed down from my mother. It takes about 3-5 days to finish one piece.`;
-            } else if (lowerText.includes('time') || lowerText.includes('deliver') || lowerText.includes('when')) {
-                reply = "I can ship it tomorrow via the village co-operative. It usually reaches within 4-5 days depending on your location.";
-            } else if (lowerText.includes('size') || lowerText.includes('big') || lowerText.includes('small')) {
-                reply = "Yes, I can customize the size for you! Just let me know what dimensions you need.";
-            }
-
-            setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-        }, 1000);
+        // Send to socket
+        const user = getUserData();
+        sendMessage(roomId, userText, user?.id || 'guest');
     };
 
-    // Robust Scroll to bottom
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [messages]);
+    // 5. Conditional Rendering at the END
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
@@ -70,7 +93,7 @@ const UserChatModal = ({ isOpen, onClose, creatorName, productName }) => {
                         </div>
                         <div>
                             <h3 className="font-black leading-tight">{creatorName}</h3>
-                            <p className="text-xs text-white/70 font-bold uppercase tracking-widest">{productName} Sakhi</p>
+                            <p className="text-xs text-white/70 font-bold uppercase tracking-widest">{productName}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="hover:text-white/70 transition-colors">
@@ -95,13 +118,14 @@ const UserChatModal = ({ isOpen, onClose, creatorName, productName }) => {
                     <input
                         type="text"
                         className="flex-1 bg-gray-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 focus:ring-secondary/20 transition-all font-medium"
-                        placeholder={t.messagePlaceholder}
+                        placeholder={t.messagePlaceholder || "Type a message..."}
                         value={input}
                         onChange={e => setInput(e.target.value)}
                     />
-                    <button
+                    <button 
                         type="submit"
-                        className="bg-secondary text-white p-3 rounded-2xl shadow-lg shadow-purple-100 hover:bg-purple-800 transition-all"
+                        className="bg-secondary text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:bg-purple-700 transition-colors"
+                        disabled={!input.trim()}
                     >
                         <Send size={20} />
                     </button>

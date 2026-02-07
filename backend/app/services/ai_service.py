@@ -15,8 +15,8 @@ import time
 # Configure Google AI with API key
 genai.configure(api_key=settings.GOOGLE_API_KEY)
 
-# Initialize Gemini model using a model that actually exists
-model = genai.GenerativeModel('models/gemini-2.5-flash')
+# Initialize Gemini model
+model = genai.GenerativeModel(settings.GEMINI_MODEL)
 
 class AIService:
     """Service class for AI chatbot interactions"""
@@ -55,11 +55,11 @@ class AIService:
                         time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
                         continue
                     else:
-                        return "Oh dear! I'm getting a lot of questions right now and need a short break. Could you please try again in a few seconds? I promise I'll be right here waiting to help you! 😊"
+                        return "Oh dear! I'm getting a lot of questions right now and need a short break. Could you please try again in a few seconds? I promise I'll be right here waiting to help you!"
                 else:
                     # Other errors - log details
                     print(f"❌ Non-rate-limit error: {type(e).__name__}: {error_message}")
-                    return f"I'm having a small technical hiccup right now. Please try again in a moment. If this keeps happening, please let someone know so they can help fix it! 💕"
+                    return f"I'm having a small technical hiccup right now. Please try again in a moment. If this keeps happening, please let someone know so they can help fix it!"
         
         return "I'm having trouble responding right now. Please try again shortly!"
     
@@ -154,6 +154,33 @@ Respond as a caring friend. Be warm, empathetic, and conversational. Answer thei
         except Exception as e:
             # Handle unexpected errors gracefully
             return "I'm having a small technical hiccup right now. Please try again in a moment! I'm here for you. 💕"
+    
+    @staticmethod
+    async def get_chat_response(user_message: str, system_prompt: str) -> str:
+        """
+        Generic chat response method for any bot with custom system prompt
+        
+        Args:
+            user_message: User's question or message
+            system_prompt: Custom system prompt for the specific bot
+            
+        Returns:
+            AI-generated response string
+        """
+        try:
+            # Combine system prompt with user message
+            full_prompt = f"""{system_prompt}
+
+User's Message: {user_message}
+
+Respond warmly and helpfully:"""
+            
+            # Call API with retry logic
+            return AIService._make_api_call_with_retry(full_prompt)
+            
+        except Exception as e:
+            # Handle unexpected errors gracefully
+            return "I'm having a small technical hiccup right now. Please try again in a moment!"
     
     @staticmethod
     def test_connection() -> bool:

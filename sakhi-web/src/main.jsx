@@ -18,12 +18,25 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ThemeProvider>
-      <LanguageProvider>
-        <App />
-      </LanguageProvider>
-    </ThemeProvider>
-  </StrictMode>,
-)
+try {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+      throw new Error("Root element not found");
+  }
+
+  const root = createRoot(rootElement);
+
+  root.render(
+    <StrictMode>
+      <ThemeProvider>
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
+      </ThemeProvider>
+    </StrictMode>,
+  );
+  console.log("React mounted successfully");
+} catch (error) {
+  console.error("Failed to mount React app:", error);
+  document.body.innerHTML = `<div style="color:red; padding: 20px;"><h1>Failed to mount App</h1><pre>${error.message}\n${error.stack}</pre></div>`;
+}

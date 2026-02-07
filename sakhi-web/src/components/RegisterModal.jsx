@@ -1,19 +1,37 @@
 import React, { useState } from 'react';
-import { X, Upload } from 'lucide-react';
+import { X, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { uploadWorkSample, API_URL } from '../services/api';
 
 const RegisterModal = ({ isOpen, onClose, onRegister }) => {
     const { t } = useLanguage();
+    const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         village: '',
         skill_category: '',
         experience: '',
         contact: '',
-        work_samples: ['/images/artisan1.png'] // Default mock image
+        work_samples: [] // Empty initially
     });
 
     if (!isOpen) return null;
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const { url } = await uploadWorkSample(file);
+            setFormData(prev => ({ ...prev, work_samples: [API_URL + url] }));
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Failed to upload image. Please try again.");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -95,9 +113,48 @@ const RegisterModal = ({ isOpen, onClose, onRegister }) => {
                         />
                     </div>
 
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-1">Work Sample Photo</label>
+                        <div className="flex gap-4 items-center">
+                            <div className="relative w-full">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    id="work-sample-upload"
+                                />
+                                <label
+                                    htmlFor="work-sample-upload"
+                                    className={`w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl py-3 cursor-pointer hover:border-secondary hover:bg-secondary/5 transition-all text-gray-500 font-medium ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                    {uploading ? (
+                                        <Loader2 size={20} className="animate-spin" />
+                                    ) : (
+                                        <Upload size={20} />
+                                    )}
+                                    {uploading ? "Uploading..." : "Upload Photo"}
+                                </label>
+                            </div>
+                            {formData.work_samples.length > 0 && (
+                                <div className="h-14 w-14 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0 relative group">
+                                    <img 
+                                        src={formData.work_samples[0]} 
+                                        alt="Preview" 
+                                        className="h-full w-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ImageIcon size={16} className="text-white" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <button
                         type="submit"
-                        className="w-full bg-secondary text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-purple-100 hover:shadow-2xl hover:bg-purple-800 transition-all transform hover:-translate-y-1 active:translate-y-0 mt-4"
+                        disabled={uploading}
+                        className="w-full bg-secondary text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-purple-100 hover:shadow-2xl hover:bg-purple-800 transition-all transform hover:-translate-y-1 active:translate-y-0 mt-4 disabled:opacity-50 disabled:transform-none"
                     >
                         {t.submit}
                     </button>
