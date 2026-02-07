@@ -350,10 +350,13 @@ Sakhi-Hub/
 │   ├── app/
 │   │   ├── main.py            # Application entry point
 │   │   ├── config/            # Settings & configuration
-│   │   ├── models/            # Pydantic schemas
+│   │   ├── models/            # Pydantic data models
 │   │   ├── routes/            # API endpoints
+│   │   │   ├── auth.py        # Authentication & User Management
 │   │   │   ├── skill_hub.py   # Skill marketplace APIs
-│   │   │   └── health_bots.py # Health assistant APIs
+│   │   │   ├── health_bots.py # Health assistant APIs
+│   │   │   ├── community.py   # Community & Chat APIs
+│   │   │   └── schemes.py     # Government Schemes AI APIs
 │   │   ├── services/          # Business logic
 │   │   │   └── ai_service.py  # Google Gemini integration
 │   │   └── prompts/           # AI prompt templates
@@ -367,7 +370,9 @@ Sakhi-Hub/
 │   │   │   ├── HealthAssistant.jsx
 │   │   │   ├── Education.jsx
 │   │   │   ├── Schemes.jsx
-│   │   │   └── Safety.jsx
+│   │   │   ├── Safety.jsx
+│   │   │   ├── Community.jsx
+│   │   │   └── Profile.jsx
 │   │   ├── components/        # Reusable UI components
 │   │   ├── context/           # Language context
 │   │   └── services/          # API integration
@@ -375,7 +380,6 @@ Sakhi-Hub/
 │
 ├── README.md
 ├── ARCHITECTURE.md
-├── FEATURES.md
 └── start.bat                  # Quick start script
 ```
 
